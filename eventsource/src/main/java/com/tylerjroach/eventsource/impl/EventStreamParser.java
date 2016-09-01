@@ -2,6 +2,7 @@ package com.tylerjroach.eventsource.impl;
 
 import com.tylerjroach.eventsource.EventSourceHandler;
 import com.tylerjroach.eventsource.MessageEvent;
+
 import java.util.regex.Pattern;
 
 /**
@@ -26,9 +27,10 @@ public class EventStreamParser {
   private StringBuffer data = new StringBuffer();
   private String lastEventId;
   private String eventName = DEFAULT_EVENT;
+  private Boolean passDataKey = false, passHexLength = false;
 
   public EventStreamParser(String origin, EventSourceHandler eventSourceHandler,
-      ConnectionHandler connectionHandler) {
+                           ConnectionHandler connectionHandler) {
     this.eventSourceHandler = eventSourceHandler;
     this.origin = origin;
     this.connectionHandler = connectionHandler;
@@ -49,14 +51,24 @@ public class EventStreamParser {
       String value = line.substring(colonIndex + 1).replaceFirst(" ", EMPTY_STRING);
       processField(field, value);
     } else {
-      processField(line.trim(),
-          EMPTY_STRING); // The spec doesn't say we need to trim the line, but I assume that's an oversight.
+      processField(line.trim(), EMPTY_STRING); // The spec doesn't say we need to trim the line, but I assume that's an oversight.
     }
   }
 
   private void processField(String field, String value) {
+      // new codes
+    if (passHexLength) {
+      data.append(field + value).append("\n");
+      passDataKey = false;
+      passHexLength = false;
+    }
+
+    if (passDataKey) {
+      passHexLength = true;
+    }
+
     if (DATA.equals(field)) {
-      data.append(value).append("\n");
+      passDataKey = true;
     } else if (ID.equals(field)) {
       lastEventId = value;
     } else if (EVENT.equals(field)) {
@@ -64,6 +76,17 @@ public class EventStreamParser {
     } else if (RETRY.equals(field) && isNumber(value)) {
       connectionHandler.setReconnectionTimeMillis(Long.parseLong(value));
     }
+
+      // original codes
+//        if (DATA.equals(field)) {
+//            data.append(value).append("\n");
+//        } else if (ID.equals(field)) {
+//            lastEventId = value;
+//        } else if (EVENT.equals(field)) {
+//            eventName = value;
+//        } else if (RETRY.equals(field) && isNumber(value)) {
+//            connectionHandler.setReconnectionTimeMillis(Long.parseLong(value));
+//        }
   }
 
   private boolean isNumber(String value) {
