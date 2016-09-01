@@ -5,7 +5,10 @@ An Android EventSource (SSE - Server Sent Events) Library
 jCenter Gradle import
 
     compile 'com.tylerjroach:eventsource:1.2.11'
-    
+
+## Fixed
+This branch fixed the bug that you get null data
+
 ## What's new (1.2.11)
 * Removed need to create event source in background thread, now done automatically
 * First official jcenter release
