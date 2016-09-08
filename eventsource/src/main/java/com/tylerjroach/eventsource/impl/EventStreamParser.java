@@ -58,7 +58,7 @@ public class EventStreamParser {
   private void processField(String field, String value) {
       // new codes
     if (passHexLength) {
-      data.append(field + value).append("\n");
+      data.append(field + ":" + value).append("\n");
       passDataKey = false;
       passHexLength = false;
     }
